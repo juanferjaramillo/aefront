@@ -16,6 +16,8 @@ import MenuIcon from "@mui/icons-material/Menu";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { logOut } from "../../Redux/Actions/viewActions";
+import { toast } from "sonner";
+import { toastWarning } from "../../Redux/Actions/alertStyle";
 
 export default function NavBar(props) {
   const {user} = useSelector((state) => state.auth);
@@ -34,10 +36,13 @@ export default function NavBar(props) {
   };
   const handleClick = (event) => {
   if(Object.entries(user).length === 0){
-  alert("Debes iniciar sesion para acceder al calendario")
-  }else{
-    navigate("/calendary")
+  toast.error("Debes iniciar sesion para acceder al calendario", toastWarning)
   }
+  if(user.rol==="Supervisor"||user.rol==="SuperAdmin"){
+    navigate("/calendarSupervisor")
+  }
+
+  
   };
   const closeSession = () => {
     dispatch(logOut());
