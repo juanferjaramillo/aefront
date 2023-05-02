@@ -7,8 +7,8 @@ import CalendarSupervisor from "./Components/Calendary/CalendarSupervisor/Calend
 import Footer from "./Components/Footer/Footer";
 import PanelSupervision from "./Views/PanelSupervision/PanelSupervision";
 import axios from "axios";
-//axios.defaults.baseURL = 'aquiestoyapi-production.up.railway.app';
-axios.defaults.baseURL = 'http://localhost:3001';
+axios.defaults.baseURL = 'https://aeapi-production.up.railway.app';
+//axios.defaults.baseURL = 'http://localhost:3001';
 
 // const PrivateRoute = ({ element: Element, ...rest }) => {
 //   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
