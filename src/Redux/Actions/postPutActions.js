@@ -5,6 +5,7 @@ import {
   PUT_SUPERVISOR,
   POST_ASSIGN_SUPERVISOR_SHIFT,
   POST_ASSIGN_COMPANION_SHIFT,
+  POST_SUPERVISOR_CHARGE,
 } from "./action-types";
 import axios from "axios";
 import { toast } from "sonner";
@@ -64,12 +65,14 @@ export const postAssignSupervisorShift = (idSupervisor, idShift, rol) => {
     try {
       const response = (
         await axios.post(`/postAssignSupervisorShift/${idSupervisor}`, {
-          idShift, rol
+          idShift,
+          rol,
         })
       ).data;
       dispatch({ type: POST_ASSIGN_SUPERVISOR_SHIFT, payload: response });
+      alert("Tu turno ha sido confirmado");
     } catch (error) {
-      error.message;
+      alert("No fue posible asignar el turno");
     }
   };
 };
@@ -79,12 +82,27 @@ export const postAssignCompanionShift = (idCompanion, idShift, rol) => {
     try {
       const response = (
         await axios.post(`/postAssignCompanionShift/${idCompanion}`, {
-          idShift, rol
+          idShift,
+          rol,
         })
       ).data;
       dispatch({ type: POST_ASSIGN_COMPANION_SHIFT, payload: response });
+      alert("Tu turno ha sido confirmado");
     } catch (error) {
-      error.message;
+      alert("No fue posible asignar el turno");
     }
   };
 };
+
+export const postSupervisorCharge = (idSupervisor, arrayCompanion) =>{
+  return async function(dispatch){
+    try{  
+      const response = (await axios.post(`/postSupervisorCharge/${idSupervisor}`, {arrayCompanion})).data;
+      dispatch({type:POST_SUPERVISOR_CHARGE, payload:response})
+      alert("El acompañante ha sido correctamente asignado");
+    } catch(error){
+      alert("No fue posible asignar el acompañante");
+    }
+  }
+}
+

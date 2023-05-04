@@ -7,8 +7,12 @@ import CalendarSupervisor from "./Components/Calendary/CalendarSupervisor/Calend
 import Footer from "./Components/Footer/Footer";
 import PanelSupervision from "./Views/PanelSupervision/PanelSupervision";
 import axios from "axios";
-axios.defaults.baseURL = 'https://aeapi-production.up.railway.app';
-//axios.defaults.baseURL = 'http://localhost:3001';
+import CalendarCompanion from "./Components/Calendary/CalendarCompanion/CalendarCompanion";
+import CompanionsAtCharge from "./Components/Cards/CompanionsAtCharge";
+ 
+axios.defaults.baseURL =  import.meta.env.VITE_SERVER_URL;
+//axios.defaults.baseURL = 'aquiestoyapi-production.up.railway.app';
+// axios.defaults.baseURL = 'http://localhost:3001';
 
 // const PrivateRoute = ({ element: Element, ...rest }) => {
 //   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -30,8 +34,10 @@ const App = () => {
         <Route exact path="/" element={<Landing />} />
         <Route path="/register" element={<Register />} />
         <Route path="/calendarSupervisor" element={<CalendarSupervisor />} />
+        <Route path="/calendarCompanion" element={<CalendarCompanion />} />
         <Route path="/profile/:id" element={<Profiles />} />
         <Route path="/panel-supervision" element={<PanelSupervision />} />
+        <Route path= "/companionsAtCharge" element={<CompanionsAtCharge/>}></Route>
       </Routes>
       {location.pathname === "/" && <Footer />}
     </div>

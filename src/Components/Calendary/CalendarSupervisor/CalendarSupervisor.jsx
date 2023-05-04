@@ -59,7 +59,7 @@ const CalendarSupervisor=()=>{
         dispatch(getAllSupervisorShift())
     }
     let hours=[]
-  //if(user&&user.rol==="Supervisor"||user.isSuperAdmin){
+  if(user&&user.rol==="Supervisor"||user.isSuperAdmin){
  
 hours = Array.from({ length: 24 }, (_, i) => {
     if(i<9){
@@ -72,7 +72,7 @@ hours = Array.from({ length: 24 }, (_, i) => {
     return `${i}:00-${i===23?"00":i+1}:00`
 });
 
-//}
+}
 
 
     const handleClickCell=(hour,day)=>{
