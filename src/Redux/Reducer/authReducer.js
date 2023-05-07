@@ -12,8 +12,8 @@ import {
 } from "../Actions/action-types";
 //Acá pongo los GET_ONE y los PUT modificando user;
 const initialState = {
-  isAuthenticated: false,
-  user: {},
+  isAuthenticated: JSON.parse(sessionStorage.getItem("user")) ? true : false,
+  user: JSON.parse(sessionStorage.getItem("user")) || {},
   error: null,
   loading: false,
 };
@@ -35,7 +35,12 @@ const authReducer = (state = initialState, action) => {
         error: action.payload,
       };
     case LOGOUT:
-      return initialState;
+      sessionStorage.clear();
+      return {
+        ...state,
+        isAuthenticated: false,
+        user: {},
+      };
 
     case GET_ONE_COMPANION:
       return {
@@ -50,34 +55,33 @@ const authReducer = (state = initialState, action) => {
     case PUT_COMPANION:
       return {
         ...state,
-        user: action.payload
+        user: action.payload,
       };
     case PUT_SUPERVISOR:
       return {
         ...state,
-        user: action.payload
+        user: action.payload,
       };
-    case 'GET_BOTH_ROLES':
+    case "GET_BOTH_ROLES":
       return {
         ...state,
-        user: action.payload
-      }
+        user: action.payload,
+      };
     case POST_ASSIGN_SUPERVISOR_SHIFT:
-      return{
+      return {
         ...state,
-        user: action.payload
-      }
+      };
     case POST_ASSIGN_COMPANION_SHIFT:
-      return{
+      return {
         ...state,
-        user: action.payload
-      }
+        user: action.payload,
+      };
     case SET_LOADING:
       return {
         ...state,
-        loading: action.payload
-      }
-       
+        loading: action.payload,
+      };
+
     default:
       return { ...state };
   }

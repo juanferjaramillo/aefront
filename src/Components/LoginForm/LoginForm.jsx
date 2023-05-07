@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import axios from "axios"
 import { useDispatch, useSelector } from "react-redux"
-import { getOneCompanion, getOneSupervisor } from '../../Redux/Actions/viewActions';
+import { getBothRoles } from '../../Redux/Actions/viewActions';
 import { useNavigate } from "react-router-dom"
 import {
   TextField,
@@ -12,10 +12,9 @@ import {
   Grid,
   Typography,
   Container,
-  ToggleButtonGroup,
-  ToggleButton,
 } from '@mui/material';
 import { styled } from '@mui/system';
+import { loginSuccess } from '../../Redux/Actions/actions';
 
 const StyledLoginButton = styled(Button)(({ theme }) => ({
 
@@ -28,14 +27,6 @@ const validationSchema = Yup.object().shape({
 
 const LoginForm = ({ handleMouseLeave }) => {
   
-  const [rol, setRol] = useState("Acompañante")
-
-  const handleRoleChange = (event, newRole) => {
-    if (newRole !== null) {
-      setRol(newRole);
-    }
-  }
-
   const navigate = useNavigate()
 
   const dispatch = useDispatch();
@@ -44,6 +35,7 @@ const LoginForm = ({ handleMouseLeave }) => {
   const {name, id} = user
   useEffect(() => {
     if(Object.entries(user).length){
+      dispatch(loginSuccess(user))
       if (name) {
         navigate(`/profile/${id}`)
       } else {
@@ -56,11 +48,7 @@ const LoginForm = ({ handleMouseLeave }) => {
     
     const { email, password } = values;
     
-    if (rol === "Supervisor") {
-      dispatch(getOneSupervisor(email, password)) //Register
-    } else { // Companion
-      dispatch(getOneCompanion(email, password))
-    }
+    dispatch(getBothRoles(email,password))
   }
 
   return (
@@ -75,19 +63,7 @@ const LoginForm = ({ handleMouseLeave }) => {
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <Typography variant="h5">Iniciar sesión</Typography>
-                <ToggleButtonGroup
-                  value={rol}
-                  exclusive
-                  onChange={handleRoleChange}
-                  aria-label="rol"
-                >
-                  <ToggleButton value="Acompañante" aria-label="Acompañante">
-                    Acompañante
-                  </ToggleButton>
-                  <ToggleButton value="Supervisor" aria-label="Supervisor">
-                    Supervisor
-                  </ToggleButton>
-                </ToggleButtonGroup>
+        
               </Grid>
               <Grid item xs={12}>
   <Field
