@@ -13,7 +13,6 @@ import { Grid, Typography } from '@mui/material';
 const CreateUser = () => {
   const dispatch=useDispatch()
   const [userData, setUserData] = useState({
-    username: '',
     email: '',
     password: '',
     rol: '',
@@ -23,15 +22,15 @@ const CreateUser = () => {
     const { name, value } = e.target;
     setUserData({ ...userData, [name]: value });
   };
-
+  
+  console.log(userData);
   const handleSubmit = (e) => {
     e.preventDefault();
     //  implementar la lógica para crear el usuario, como llamar a una API o usar acciones de Redux
-    // console.log(userData);
     if(userData.rol==="Companion1" || userData.rol==="Companion2"){
-      dispatch(postCompanion({email:userData.email,password:userData.password}))
+      dispatch(postCompanion({email:userData.email,password:userData.password,rol:userData.rol}))
     }else{
-      dispatch(postSupervisor({email:userData.email,password:userData.password}))
+      dispatch(postSupervisor({email:userData.email,password:userData.password,rol:userData.rol}))
     }
     }
 

@@ -1,18 +1,36 @@
 import Box from "@mui/material/Box";
 import { toast } from "sonner";
-import { toastSuccess, toastError } from "../../../../Redux/Actions/alertStyle";
+import { toastError } from "../../../../Redux/Actions/alertStyle";
 import { DataGrid } from "@mui/x-data-grid";
 import { Button, Grid, Paper, TableContainer, Typography } from "@mui/material";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { useState, useEffect } from "react";
+import ModalEdit from "../../../VentanaLogin/ModalEdit";
+import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
+import { getAllCompanions, getAllSupervisors } from "../../../../Redux/Actions/viewActions";
 
 function UsersViewEdit(props) {
+  const dispatch = useDispatch();
   let companionsData = useSelector((state) => state.view.allCompanions);
   let supervisorsData = useSelector((state) => state.view.allSupervisors);
   let usrRol = null;
-
+  const [edit, setEdit] = useState(false);
+  const [rowID, setRowID] = useState("");
+  const handleEdit = () => {
+    setEdit(true);
+  };
+  const handleClose = () => {
+    setEdit(false);
+  };
+  useEffect(() => {
+    dispatch(getAllCompanions())
+    dispatch(getAllSupervisors())
+    }, [dispatch])
   //Aqui se limpia la info para exportar los campos deseados
   companionsData = companionsData.map((usr) => {
-    usr.isSuperCompanion ? (usrRol = "Companion-2") : (usrRol = "Companion-1");
+    usr.rol === "Companion2"
+      ? (usrRol = "Acompañante 2")
+      : (usrRol = "Acompañante 1");
     return {
       id: usr.id,
       name: usr.name || " ",
@@ -26,11 +44,13 @@ function UsersViewEdit(props) {
       studies: usr.studies || " ",
       gender: usr.gender || " ",
       rol: usrRol || " ",
-      isActiveText: (usr.isActive? 'Si' : 'No'),
+      isActiveText: usr.isActive ? "Si" : "No",
     };
   });
   supervisorsData = supervisorsData.map((usr) => {
-    usr.isSuperAdmin ? (usrRol = "Superadmin") : (usrRol = "Supervisor");
+    usr.rol === "SuperAdmin"
+      ? (usrRol = "Super Admin")
+      : (usrRol = "Supervisor");
     return {
       id: usr.id,
       name: usr.name || " ",
@@ -44,13 +64,13 @@ function UsersViewEdit(props) {
       studies: usr.studies || " ",
       gender: usr.gender || " ",
       rol: usrRol || " ",
-      isActiveText: (usr.isActive? 'Si' : 'No'),
+      isActiveText: usr.isActive ? "Si" : "No",
     };
   });
   const usersData = [...companionsData, ...supervisorsData];
 
-  const handleClick = (row) => {
-    toast.error(`Pronto podrás editar a ${row}! 😉`, toastError);
+  const handleClick = (event) => {
+    toast.error(`Pronto podrás editar usuarios aquí! 😉`, toastError);
   };
 
   const columns = [
@@ -64,11 +84,21 @@ function UsersViewEdit(props) {
     //   //   `${params.row.firstName || ""} ${params.row.lastName || ""}`,
     // },
     {
+      field: "edit",
+      headerName: "",
+      description: "",
+      sortable: false,
+      width: 40,
+      renderCell: () => (
+        <AutoFixHighIcon onClick={handleClick} style={{ cursor: "pointer" }} />
+      ),
+    },
+    {
       field: "isActiveText",
-      headerName: "CUENTA ACTIVA",
+      headerName: "ACTIVO",
       description: "",
       sortable: true,
-      width: 160,
+      width: 80,
       // valueGetter: (params) =>
       //   `${params.row.firstName || ""} ${params.row.lastName || ""}`,
     },
@@ -113,7 +143,7 @@ function UsersViewEdit(props) {
       headerName: "TELÉFONO",
       description: "",
       sortable: false,
-      width: 160,
+      width: 120,
       // valueGetter: (params) =>
       //   `${params.row.firstName || ""} ${params.row.lastName || ""}`,
     },
@@ -122,7 +152,7 @@ function UsersViewEdit(props) {
       headerName: "PAÍS",
       description: "",
       sortable: true,
-      width: 160,
+      width: 120,
       // valueGetter: (params) =>
       //   `${params.row.firstName || ""} ${params.row.lastName || ""}`,
     },
@@ -131,13 +161,13 @@ function UsersViewEdit(props) {
       headerName: "NACIONALIDAD",
       description: "",
       sortable: true,
-      width: 160,
+      width: 120,
       // valueGetter: (params) =>
       //   `${params.row.firstName || ""} ${params.row.lastName || ""}`,
     },
     {
       field: "birthdayDate",
-      headerName: "FECHA DE NACIMIENTO",
+      headerName: "FECHA NACIMIENTO",
       description: "",
       sortable: false,
       width: 160,
@@ -149,7 +179,8 @@ function UsersViewEdit(props) {
       headerName: "PROFESIÓN",
       description: "",
       sortable: true,
-      width: 160,
+      width: 120,
+
       // valueGetter: (params) =>
       //   `${params.row.firstName || ""} ${params.row.lastName || ""}`,
     },
@@ -158,7 +189,7 @@ function UsersViewEdit(props) {
       headerName: "ESTUDIOS",
       description: "",
       sortable: true,
-      width: 160,
+      width: 120,
       // valueGetter: (params) =>
       //   `${params.row.firstName || ""} ${params.row.lastName || ""}`,
     },
@@ -167,18 +198,15 @@ function UsersViewEdit(props) {
       headerName: "GENERO",
       description: "",
       sortable: true,
-      width: 160,
+      width: 130,
       // valueGetter: (params) =>
       //   `${params.row.firstName || ""} ${params.row.lastName || ""}`,
     },
-    
   ];
 
-  function handleRowSelection(ids) {
-    console.log(ids);
-    //Este arreglo contiene los ids de las celdas seleccionadas
-  }
-
+  const handleCellClick = (params, event) => {
+    setRowID(params.id);
+  };
   return (
     <Box>
       <Typography variant="h5" sx={{ textAlign: "center", margin: "2vw" }}>
@@ -195,6 +223,8 @@ function UsersViewEdit(props) {
             <DataGrid
               rows={usersData}
               columns={columns}
+              showColumnVerticalBorder={true}
+              showCellVerticalBorder={true}
               initialState={{
                 pagination: {
                   paginationModel: { page: 0, pageSize: 5 },
@@ -204,11 +234,15 @@ function UsersViewEdit(props) {
               }}
               pageSizeOptions={[5, 10]}
               //options for the user to choose on how many rows the table has
-              checkboxSelection={true}
-              onRowSelectionModelChange={(ids) => handleRowSelection(ids)}
+              //checkboxSelection={true}
+              //onRowSelectionModelChange={handleRowSelection}
+              onCellClick={handleCellClick}
             />
           </TableContainer>
         </Grid>
+        {edit && (
+          <ModalEdit edit={edit} handleClose={handleClose} userID={rowID} />
+        )}
       </Grid>
     </Box>
   );
