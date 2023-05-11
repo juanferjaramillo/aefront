@@ -10,6 +10,16 @@ import axios from "axios";
 import CalendarCompanion from "./Components/Calendary/CalendarCompanion/CalendarCompanion";
 import CompanionsAtCharge from "./Components/Cards/CompanionsAtCharge";
 import ViewProfile from "./Components/ViewProfile/ViewProfile";
+import EditInfo from "./Views/Register/EditInfo";
+import PasswordRecovery from "./Components/LoginForm/PasswordRecovery";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import {
+  getAllCompanionShift,
+  getAllCompanions,
+  getAllSupervisorShift,
+  getAllSupervisors,
+} from "./Redux/Actions/viewActions";
 axios.defaults.baseURL = import.meta.env.VITE_SERVER_URL;
 
 //axios.defaults.baseURL = 'aquiestoyapi-production.up.railway.app';
@@ -28,24 +38,38 @@ axios.defaults.baseURL = import.meta.env.VITE_SERVER_URL;
 // const { user } = useSelector((state) => state.auth);
 
 const App = () => {
-  const user = JSON.parse(sessionStorage.getItem('user'))
-  const location = useLocation()
+  const dispatch = useDispatch();
+  const user = JSON.parse(sessionStorage.getItem("user"));
+  const location = useLocation();
   const RequireAuth = () => {
-    return user ? <Outlet /> : <Navigate to={'/'} />;
+    return user ? <Outlet /> : <Navigate to={"/"} />;
   };
+
+  useEffect(() => {
+    dispatch(getAllCompanions());
+    dispatch(getAllSupervisors());
+    dispatch(getAllCompanionShift());
+    dispatch(getAllSupervisorShift());
+  }, [user]);
+
   return (
     <div>
       <NavBar />
       <Routes>
         <Route exact path="/" element={<Landing />} />
+        <Route path="/password-recovery" element={<PasswordRecovery />} />
         <Route element={<RequireAuth />}>
           <Route path="/register" element={<Register />} />
           <Route path="/calendarSuperAdmin" element={<CalendarSuperAdmin />} />
           <Route path="/calendarCompanion" element={<CalendarCompanion />} />
           <Route path="/profile/:id" element={<Profiles />} />
           <Route path="/panel-supervision" element={<PanelSupervision />} />
-          <Route path="/companionsAtCharge" element={<CompanionsAtCharge />}></Route>
+          <Route
+            path="/companionsAtCharge"
+            element={<CompanionsAtCharge />}
+          ></Route>
           <Route path="/profile/:id/view" element={<ViewProfile />} />
+          <Route path="/profile/:id/edit" element={<EditInfo />} />
         </Route>
       </Routes>
       {location.pathname === "/" && <Footer />}

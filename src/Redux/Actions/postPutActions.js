@@ -9,6 +9,8 @@ import {
   PUT_SUPERVISOR_CHARGE,
   POST_EMAIL_ACCOUNT_CREATED,
   DELETE_COMPANION_SHIFT,
+  PUT_COMPANION_EDIT,
+  PUT_SUPERVISOR_EDIT,
 } from "./action-types";
 import axios from "axios";
 import { toast } from "sonner";
@@ -17,7 +19,10 @@ import { setLoading } from "./viewActions";
 export const postEmailCreatedAccount = (user) => {
   return async function (dispatch) {
     try {
-      await axios.post("/postEmail", user);
+      await axios.post("/postCreatedAccount", {
+        ...user,
+        type: "accountCreated",
+      });
       dispatch({ type: POST_EMAIL_ACCOUNT_CREATED });
     } catch (error) {
       console.log(error.message);
@@ -119,7 +124,7 @@ export const postAssignCompanionShift = (idCompanion, idShift, rol) => {
       dispatch(setLoading(false));
       toast.success("Tu turno ha sido confirmado", toastSuccess);
     } catch (error) {
-      toast.error("No fue posible asignar el turno", toastError);
+      toast.error("Ya cuentas con un turno asignado", toastError);
     }
   };
 };
@@ -172,19 +177,50 @@ export const putSupervisorCharge = (idSupervisor, arrayCompanion) => {
 
 export const deleteCompanionShift = (id, idShift) => {
   return async function (dispatch) {
-    try { 
+    try {
       dispatch(setLoading(true));
-      const response = (await axios.delete('/deleteCompanionShift', {
-        data: {
-          id: id,
-          idShift: idShift
-        }
-      })).data;
+      const response = (
+        await axios.delete("/deleteCompanionShift", {
+          data: {
+            id: id,
+            idShift: idShift,
+          },
+        })
+      ).data;
       console.log(response);
-      dispatch({type: DELETE_COMPANION_SHIFT, payload: response});
+      dispatch({ type: DELETE_COMPANION_SHIFT, payload: response });
       dispatch(setLoading(false));
-    } catch(error) {
-      console.log("Error:", error.message);
+      toast.success("Tu turno ha sido eliminado", toastSuccess);
+    } catch (error) {
+      toast.error("No fue posible eliminar el turno", toastError);
     }
-  }
+  };
+};
+
+export const putCompanionEdit = (id, companion) => {
+  return async function (dispatch) {
+    try {
+      dispatch(setLoading(true));
+      const response = await axios.put(`/putCompanion/${id}`, companion, {
+        headers: { "Content-Type": "application/json" },
+      });
+      dispatch({ type: PUT_COMPANION_EDIT, payload: response.data });
+      dispatch(setLoading(false));
+    } catch (error) {
+      toast.error("No se pudo actualizar el ACOMPAÑANTE", toastError);
+    }
+  };
+};
+
+export const putSupervisorEdit = (id, supervisor) => {
+  return async function (dispatch) {
+    try {
+      dispatch(setLoading(true));
+      const response = await axios.put(`/putSupervisor/${id}`, supervisor);
+      dispatch({ type: PUT_SUPERVISOR_EDIT, payload: response.data });
+      dispatch(setLoading(false));
+    } catch (error) {
+      toast.error("No se pudo actualizar el SUPERVISOR", toastError);
+    }
+  };
 };

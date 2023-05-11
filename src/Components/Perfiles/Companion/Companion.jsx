@@ -1,22 +1,30 @@
 import { Button, Box, Avatar, Typography, Grid } from "@mui/material";
-import { Link } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux"
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import Loader from "../../Loader/Loader";
-
+import { getSurpervisorMatch } from "../../../Redux/Actions/viewActions";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 
 export default function Companion(props) {
-  const allSupervisors = useSelector(state => state.view.allSupervisors);
+  const userLog = props.user.id;
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const allSupervisors = useSelector((state) => state.view.allSupervisors);
+  const { loading } = useSelector((state) => state.auth);
   const SuperId = props.user.SupervisorId;
-  let MentorName = "No asignado";
 
-  const result = allSupervisors.find((supervisor)=>{
-    if (supervisor.id === SuperId) return supervisor
-  })
-  console.log("result");
-  console.log(result);
+  let MentorName = "No asignado";
+  let superOffset = "";
+  let superPhone = "";
+
+  const result = allSupervisors.find((supervisor) => {
+    if (supervisor.id === SuperId) return supervisor;
+  });
   if (result) {
-  const { name, lastName } = result;
-  MentorName = `${name} ${lastName}`;
+    const { name, lastName, CityTimeZone, phone } = result;
+    MentorName = `${name} ${lastName}`;
+    superOffset = Number(CityTimeZone?.offSet.toString().slice(-6, -3)) * 100;
+    superPhone = phone;
   }
 
   const estilos = {
@@ -30,13 +38,30 @@ export default function Companion(props) {
 
   const { user } = props;
 
-  return Object.entries(user).length > 0 ? (
+  const toEdit = () => {
+    navigate(`/profile/${user.id}/edit`);
+  };
+
+  const myDate = new Date();
+  const myTimeZone = myDate.toString().match(/([\+-][0-9]+)/)[1];
+  const myHours = myDate.getHours();
+  const myMinutes = myDate.getMinutes();
+
+  let horaLoc = Number(myHours) + (superOffset - Number(myTimeZone)) / 100;
+  horaLoc >= 24 ? horaLoc = horaLoc - 24 : null;
+
+  horaLoc =
+    (horaLoc < 10 ? `0${horaLoc}` : horaLoc) +
+    ":" +
+    (myMinutes < 10 ? `0${myMinutes}` : myMinutes);
+
+  return !loading ? (
     <Box>
       <Grid
         container
         margin={"auto"}
         sx={{
-          width: "60vw",
+          width: "75vw",
           flexDirection: "row",
           justifyContent: "center",
         }}
@@ -48,14 +73,14 @@ export default function Companion(props) {
             width: "50vw",
             boxShadow: "5px 5px 5px #C8CCD8",
             borderRadius: "5%",
+            position: "relative",
           }}
           xs={12}
           md={5}
+          paddingY="20px"
+          paddingX="10px"
         >
-          <Grid
-            item
-            margin={1}
-          >
+          <Grid item margin={1}>
             <Avatar
               alt={user.name}
               src={user.profilePhoto}
@@ -81,26 +106,69 @@ export default function Companion(props) {
             <Typography display="block" variant="h6" marginTop={1}>
               {user.email}
             </Typography>
-            <Typography display="block" variant="h7" marginTop={1}>
-              {user.rol === "Companion2" ? "Acompañante 2" : "Acompañante 1"}
+            <Typography
+              display="block"
+              variant="p"
+              marginTop={1}
+              sx={{ fontFamily: "poppins" }}
+            >
+              {user.rol === "Companion2"
+                ? "Acompañante Nivel 2"
+                : "Acompañante Nivel 1"}
             </Typography>
-            <Typography display="block" variant="h7" marginTop={1}>
+            <Typography
+              display="block"
+              variant="p"
+              marginTop={1}
+              sx={{ fontFamily: "poppins" }}
+            >
               Teléfono: {user.phone}
             </Typography>
-            <Typography display="block" variant="h7" marginTop={1}>
+            <Typography
+              display="block"
+              variant="p"
+              marginTop={1}
+              sx={{ fontFamily: "poppins" }}
+            >
               Ubicación: {user.country}
             </Typography>
-            <Typography display="block" variant="h7" marginTop={1}>
+            {/* <Typography display="block" variant="h7" marginTop={1}>
               {user.CityTimeZone?.offSet}
+            </Typography> */}
+            <Typography
+              display="block"
+              variant="p"
+              marginTop={1}
+              sx={{ fontFamily: "poppins" }}
+            >
+              Estudios: {user.studies}
             </Typography>
-            <Typography display="block" variant="h7" marginTop={1}>
-              {user.studies}
-            </Typography>
-            <Typography display="block" variant="h7" marginTop={1}>
+            <Typography
+              display="block"
+              variant="p"
+              marginTop={1}
+              sx={{ fontFamily: "poppins" }}
+            >
               Género: {user.gender}
             </Typography>
-            <Typography display="block" variant="h7" marginTop={1}>
+            <Typography
+              display="block"
+              variant="p"
+              marginTop={1}
+              sx={{ fontFamily: "poppins" }}
+            >
               Mentor: {MentorName}
+              <a href={`https://wa.me/${superPhone}`} target="_blank">
+                <WhatsAppIcon sx={{borderRadius: "50px",marginLeft: "3%", color: "green", "&:hover":{ boxShadow: "0 0 10px grey"}}}/>
+              </a>
+            </Typography>
+            <Typography
+              display="block"
+              variant="p"
+              marginTop={1}
+              sx={{ fontFamily: "poppins" }}
+            >
+              Hora local del mentor: {horaLoc}
             </Typography>
           </Grid>
         </Grid>
@@ -119,7 +187,7 @@ export default function Companion(props) {
             item
             sx={{
               width: "90%",
-              height: "30%",
+              height: "22%",
               padding: "1vw",
             }}
           >
@@ -129,12 +197,28 @@ export default function Companion(props) {
               </Button>
             </Link>
           </Grid>
+          <Grid
+            item
+            sx={{
+              width: "90%",
+              height: "22%",
+              padding: "1vw",
+            }}
+          >
+            <Button
+              onClick={() => dispatch(getSurpervisorMatch(userLog))}
+              variant="contained"
+              style={estilos}
+            >
+              Supervisor a cargo
+            </Button>
+          </Grid>
 
           <Grid
             item
             sx={{
               width: "90%",
-              height: "30%",
+              height: "22%",
               padding: "1vw",
             }}
           >
@@ -147,15 +231,13 @@ export default function Companion(props) {
             item
             sx={{
               width: "90%",
-              height: "30%",
+              height: "22%",
               padding: "1vw",
             }}
           >
-            <Link to="/register">
-              <Button variant="outlined" style={estilos}>
-                Editar mi información
-              </Button>
-            </Link>
+            <Button variant="outlined" style={estilos} onClick={toEdit}>
+              Editar mi información
+            </Button>
           </Grid>
         </Grid>
       </Grid>

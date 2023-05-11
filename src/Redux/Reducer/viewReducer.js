@@ -11,6 +11,11 @@ import {
     POST_SUPERVISOR_CHARGE,
     GET_USER_BY_ID,
     PUT_SUPERVISOR_CHARGE,
+    PUT_SUPERVISOR_EDIT,
+    PUT_COMPANION_EDIT,
+    GET_SUPERVISOR_MATCH,
+    GET_ALL_SUPERVISORS_PER_SHIFT,
+    GET_ALL_COMPANIONS_PER_SHIFT,
 } from "../Actions/action-types";
 //Acá van los POST modificando a allCompanions y allSupervisors
 const initialState = {
@@ -21,7 +26,10 @@ const initialState = {
     allCompanionShift: [],
     allSupervisorShiftAssign: [],
     allCompanionShiftAssign: [],
-    viewUser: {}
+    viewUser: {},
+    SupervisorMatch: {},
+    supervisorsPerShift: {},
+    companionsPerShift: {},
 }
 const viewReducer = (state = initialState, { type, payload }) => {
     switch (type) {
@@ -83,27 +91,74 @@ const viewReducer = (state = initialState, { type, payload }) => {
                 return {
                     ...state,
                     allSupervisors: [...state.allSupervisors, payload],
-           };
-       }
-       case PUT_SUPERVISOR_CHARGE:
-        const putSupervisorIndex = state.allSupervisors.findIndex(supervisor => supervisor.id === payload.id);
-        if (putSupervisorIndex !== -1) {
-            const putSupervisors = [...state.allSupervisors];
-            putSupervisors[putSupervisorIndex] = payload;
-            return {
-                ...state,
-                allSupervisors: putSupervisors,
-            };
-        } else {
-            return {
-                ...state,
-                allSupervisors: [...state.allSupervisors],
-       };
-   }
-         case GET_USER_BY_ID:
+                };
+            }
+        case PUT_SUPERVISOR_CHARGE:
+            const putSupervisorIndex = state.allSupervisors.findIndex(supervisor => supervisor.id === payload.id);
+            if (putSupervisorIndex !== -1) {
+                const putSupervisors = [...state.allSupervisors];
+                putSupervisors[putSupervisorIndex] = payload;
+                return {
+                    ...state,
+                    allSupervisors: putSupervisors,
+                };
+            } else {
+                return {
+                    ...state,
+                    allSupervisors: [...state.allSupervisors],
+                };
+            }
+        case GET_USER_BY_ID:
             return {
                 ...state,
                 viewUser: payload
+            }
+
+        case PUT_SUPERVISOR_EDIT:
+            const supervisorIndex = state.allSupervisors.findIndex(supervisor => supervisor.id === payload.id);
+            if (supervisorIndex !== -1) {
+                const putSupervisors = [...state.allSupervisors];
+                putSupervisors[supervisorIndex] = payload;
+                return {
+                    ...state,
+                    allSupervisors: putSupervisors,
+                };
+            } else {
+                return {
+                    ...state,
+                    allSupervisors: [...state.allSupervisors],
+                };
+            }
+
+        case PUT_COMPANION_EDIT:
+            const companionIndex = state.allCompanions.findIndex(companion => companion.id === payload.id);
+            if (companionIndex !== -1) {
+                const putCompanions = [...state.allCompanions];
+                putCompanions[companionIndex] = payload;
+                return {
+                    ...state,
+                    allCompanions: putCompanions,
+                };
+            } else {
+                return {
+                    ...state,
+                    allCompanions: [...state.allCompanions],
+                };
+            }
+         case GET_SUPERVISOR_MATCH:
+                 return{
+                  ...state,
+                  SupervisorMatch: payload
+        }
+        case GET_ALL_SUPERVISORS_PER_SHIFT:
+            return{
+                ...state,
+                supervisorsPerShift: payload
+            }
+        case GET_ALL_COMPANIONS_PER_SHIFT:
+            return{
+                ...state,
+                companionsPerShift: payload
             }
         default:
             return {
