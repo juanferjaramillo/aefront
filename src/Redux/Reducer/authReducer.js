@@ -73,7 +73,7 @@ const authReducer = (state = initialState, action) => {
     case POST_ASSIGN_SUPERVISOR_SHIFT:
       return {
         ...state,
-      };
+      }
     case POST_ASSIGN_COMPANION_SHIFT:
       return {
         ...state,
