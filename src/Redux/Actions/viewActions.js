@@ -11,7 +11,6 @@ import {
   GET_ALL_SUPERVISOR_SHIFT_ASSIGN,
   SET_LOADING,
   GET_USER_BY_ID,
-  GET_SUPERVISOR_MATCH,
   GET_PASSWORD_RECOVERY_CODE,
   GET_ALL_SUPERVISORS_PER_SHIFT,
   GET_ALL_COMPANIONS_PER_SHIFT,
@@ -199,18 +198,6 @@ export const getUserById = (id) => {
   };
 };
 
-export const getSurpervisorMatch = (idCompanion) => {
-  return async function (dispatch) {
-    try {
-      const response = (await axios.get(`/getMatchShiftTime/${idCompanion}`))
-        .data;
-      console.log(response);
-      dispatch({ type: GET_SUPERVISOR_MATCH, payload: response });
-    } catch (error) {
-      toast.error("No se pudo cargar el supervisor", toastError);
-    }
-  };
-};
 export const getPasswordRecoveryCode = (email) => {
   return async function (dispatch) {
     const code = await axios.get(`/getPasswordRecoveryCode/${email}`);
@@ -221,9 +208,10 @@ export const getPasswordRecoveryCode = (email) => {
 export const getAllSupervisorsPerShift = () => {
   return async function (dispatch) {
     try {
+      dispatch(setLoading(true))
       const response = (await axios.get("/getAllSupervisorsPerShift")).data;
-
       dispatch({ type: GET_ALL_SUPERVISORS_PER_SHIFT, payload: response });
+      dispatch(setLoading(false))
     } catch (error) {
       console.log({ error: error.message });
     }
@@ -233,9 +221,10 @@ export const getAllSupervisorsPerShift = () => {
 export const getAllCompanionsPerShift = () => {
   return async function (dispatch) {
     try {
+      setLoading(true)
       const response = (await axios.get("/getAllCompanionsPerShift")).data;
-
       dispatch({ type: GET_ALL_COMPANIONS_PER_SHIFT, payload: response });
+      setLoading(false)
     } catch (error) {
       console.log({ error: error.message });
     }
@@ -246,7 +235,7 @@ export const getSupervisorsOnline = (CityTimeZone) => {
   return async function (dispatch){
     try {
       dispatch(setLoading(true));
-      const response = await axios.get("/getOnlineSupervisor", {CityTimeZone});
+      const response = await axios.post("/getOnlineSupervisor", {CityTimeZone});
       dispatch({type: GET_SUPERVISOR_ONLINE, payload: response.data});
       dispatch(setLoading(false));
     } catch (error) {
