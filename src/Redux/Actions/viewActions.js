@@ -3,8 +3,6 @@ import {
   GET_ALL_COMPANIONS,
   GET_ALL_SUPERVISORS,
   GET_COMPANIONS_AT_CHARGE,
-  GET_ONE_COMPANION,
-  GET_ONE_SUPERVISOR,
   GET_ALL_SUPERVISOR_SHIFT,
   GET_ALL_COMPANION_SHIFT,
   GET_ALL_COMPANION_SHIFT_ASSIGN,
@@ -59,44 +57,6 @@ export const getCompanionsAtCharge = (idSupervisor) => {
   };
 };
 
-export const getOneCompanion = (email, password) => {
-  return async function (dispatch) {
-    try {
-      dispatch(setLoading(true));
-      const response = await axios.post(
-        "/getOneCompanion",
-        { email, password },
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      dispatch({ type: GET_ONE_COMPANION, payload: response.data });
-      dispatch(setLoading(false));
-    } catch (error) {
-      toast.error("No se pudo cargar el ACOMPAÑANTE", toastError);
-    }
-  };
-};
-
-export const getOneSupervisor = (email, password) => {
-  return async function (dispatch) {
-    try {
-      dispatch(setLoading(true));
-      const response = await axios.post(
-        "/getOneSupervisor",
-        { email, password },
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      dispatch({ type: GET_ONE_SUPERVISOR, payload: response.data });
-      dispatch(setLoading(false));
-    } catch (error) {
-      toast.error("No se pudo cargar el SUPERVISOR", toastError);
-    }
-  };
-};
-
 export const getBothRoles = (email, password) => {
   return async function (dispatch) {
     try {
@@ -105,7 +65,16 @@ export const getBothRoles = (email, password) => {
       dispatch({ type: "GET_BOTH_ROLES", payload: response.data });
       dispatch(setLoading(false));
     } catch (error) {
-      toast.error("No se pudo cargar el USUARIO", toastError);
+      if (error.response) {
+        const { status } = error.response;
+        if (status === 400) {
+          toast.error("Cuenta inactiva, comuníquese con el Administrador", toastError);
+      } else if (status === 500) {
+        toast.error("Ups! Hubo un error, inténtelo nuevamente más tarde", toastError)
+    }  else if (status === 401) {
+      toast.error("Correo electrónico y/o contraseña incorrecta, revise los datos", toastError)
+  } 
+  }
     }
   };
 };

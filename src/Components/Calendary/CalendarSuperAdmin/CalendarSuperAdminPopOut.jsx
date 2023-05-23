@@ -5,6 +5,7 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import { Box } from '@mui/system';
 import { styled } from '@mui/material/styles';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 const PopOut = styled(Box)(({ theme }) => ({
   position: 'absolute',
@@ -25,17 +26,20 @@ const InnerPop = styled(Box)(({ theme }) => ({
 }));
 
 const CalendarSuperAdminPopOut = (props) => {
+  const {shift, trigger, setTrigger} = props;
   const [supervisorId, setSupervisorId] = useState({
     name: "",
     id: ""
   });
   const { user } = useSelector((state) => state.auth);
   let supervisors = useSelector((state) => state.view.allSupervisors);
-  supervisors = supervisors.filter((sup) => sup.name && sup.lastName)
+  supervisors = supervisors.filter((sup) => sup.name && sup.lastName && sup.isActive)
   supervisors = supervisors.map((supervisor) => ({
     id: supervisor.id,
     label: `${supervisor.name} ${supervisor.lastName}`
   })).filter((supervisor) => supervisor.label.trim() !== "");
+  
+
   const dispatch = useDispatch();
   const [isConfirmed, setIsConfirmed] = useState(false);
 
@@ -69,11 +73,11 @@ const CalendarSuperAdminPopOut = (props) => {
     });
   };
 
-  return props.trigger ? (
+  return trigger ? (
     <PopOut>
       <InnerPop>
         {props.children}
-        {user.rol === "SuperAdmin" &&
+        {user.rol === "SuperAdmin" && shift.maxSupervisors > shift.supervisorCount &&
           <div>
             <Autocomplete
               disablePortal
@@ -86,16 +90,29 @@ const CalendarSuperAdminPopOut = (props) => {
             />
           </div>
         }
-        <Box sx={{ marginTop: 2.5, padding: 1, width: "270px", display: "flex", justifyContent: "space-between" }}>
-          <Button variant="contained" color="primary" sx={{ marginRight: 2 }} onClick={() => {
-            handleConfirm()
-            props.setTrigger(false)}}
-          >
-            Confirmar
-          </Button>
+        {user.rol === "SuperAdmin" && shift.maxSupervisors > shift.supervisorCount ? (
+          <Box sx={{ marginTop: 2.5, padding: 1, width: "270px", display: "flex", justifyContent: "space-between" }}>
+            <Button variant="contained" color="primary" sx={{ marginRight: 2 }} onClick={() => {
+              handleConfirm()
+              setTrigger(false)
+            }}
+            >
+              Confirmar
+            </Button>
 
-          <Button variant="contained" color="error" sx={{ width: "114px" }} onClick={() => props.setTrigger()}>Cerrar</Button>
-        </Box>
+            <Button variant="contained" color="error" sx={{ width: "114px" }} onClick={() => setTrigger()}>Cerrar</Button>
+          </Box>
+        ) : (
+          <Box sx={{ marginTop: 2.5, padding: 1, width: "270px", display: "flex", flexDirection: "column", textAlign: "center" }}>
+            <Box>
+            <ErrorOutlineIcon color="error" sx={{fontSize: "50px", display: shift.supervisorCount === 0 ? null : "none"}}/>
+            <Typography variant="h6" sx={{display: shift.supervisorCount === 0 ? null : "none"}}>Este turno no está disponible</Typography>
+            </Box>
+            <Box sx={{display: "flex", justifyContent: "center", marginTop: "10%"}}>
+            <Button variant="contained" color="primary" sx={{ width: "114px" }} onClick={() => setTrigger()}>Aceptar</Button>
+            </Box>
+          </Box>
+        )}
       </InnerPop>
     </PopOut>
   ) : null;

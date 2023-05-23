@@ -43,14 +43,14 @@ export default function CalendarSAModal({ trigger, setTrigger, shift }) {
               {shift.shiftSupervisors?.map((supervisor) => (
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "270px" }} key={supervisor.id}>
                   <Typography variant="h6" sx={{ fontFamily: "poppins", color: "grey" }} onClick={() => navigate(`/profile/${supervisor.id}/view`)}>
-                    {supervisor.name}
+                    {supervisor.name} {supervisor.lastName}
                   </Typography>
                   <Box>
                     {user.rol === "SuperAdmin" &&
                       <IconButton
                         onClick={() => {
                           Swal.fire({
-                            title: '¿Estás seguro que quieres eliminar el turno del supervisor selecciondo?',
+                            title: '¿Estás seguro que quieres eliminar el turno del supervisor seleccionado?',
                             showCancelButton: true,
                             confirmButtonColor: '#3085d6',
                             cancelButtonColor: '#d33',
@@ -80,7 +80,7 @@ export default function CalendarSAModal({ trigger, setTrigger, shift }) {
           ) : (
             ""
           )}
-          {user.rol === "SuperAdmin" && (
+          {user.rol === "SuperAdmin" && shift.maxSupervisors > shift.supervisorCount && (
             <Box sx={{ width: "270px" }}>
               <Typography sx={{fontSize:"21px"}}>Nuevo turno a asignar:</Typography>
               <Box sx={{display:"flex", justifyContent:"space-between", marginTop:"5px", marginBottom:"5px"}}>

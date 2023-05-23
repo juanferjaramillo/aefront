@@ -14,9 +14,10 @@ import {
 import { toast } from "sonner";
 import { toastError } from "../../../../Redux/Actions/alertStyle";
 import { getAllCompanions, getAllSupervisors } from "../../../../Redux/Actions/viewActions";
+import Swal from "sweetalert2";
 
 
-const AssignSupervisor = ({setActiveTab}) => {
+const AssignSupervisor = ({ setActiveTab }) => {
   const dispatch = useDispatch();
 
   const { allSupervisors } = useSelector((state) => state.view);
@@ -25,16 +26,15 @@ const AssignSupervisor = ({setActiveTab}) => {
   const [selectedSupervisor, setSelectedSupervisor] = useState([]);
   const [selectedCompanions, setSelectedCompanions] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
-  const [restCompanions, setRestCompanions]  = useState(false);
+  const [restCompanions, setRestCompanions] = useState(false);
 
 
-  useEffect(()=>{
+  useEffect(() => {
     dispatch(getAllCompanions());
     dispatch(getAllSupervisors());
-  },[selectedSupervisor])
+  }, [selectedSupervisor])
 
 
-  
   const handleSelectCompanion = (event) => {
     const selectedCompanionIds = event.target.value;
     setSelectedCompanions(selectedCompanionIds);
@@ -65,13 +65,9 @@ const AssignSupervisor = ({setActiveTab}) => {
       setSelectAll(false);
       const rest = allCompanions.filter((companion) => !companion.Supervisor);
       setSelectedCompanions(rest.map((companion) => companion.id));
-      console.log(rest);
+     
     }
   };
-  
-  
-  
-  
 
   const assignCompanions = () => {
     if (selectedSupervisor) {
@@ -82,17 +78,12 @@ const AssignSupervisor = ({setActiveTab}) => {
         setSelectAll(false);
         setSelectedCompanions([]);
         setSelectedSupervisor([]);
-    //    setActiveTab('assignSupervisor');
-    //    window.location.reload();
-        
-     console.log(selectedSupervisor);
-        console.log(selectedCompanions);
-
-        setTimeout(()=>{
+   
+        setTimeout(() => {
           dispatch(getAllCompanions());
           dispatch(getAllSupervisors());
-        },1000)
-       
+        }, 1000)
+
       }
     } else {
       toast.error("Selecciona un supervisor", toastError);
@@ -104,14 +95,21 @@ const AssignSupervisor = ({setActiveTab}) => {
       if (selectedCompanions.length === 0) {
         toast.error("Selecciona al menos un acompañante", toastError);
       } else {
-        dispatch(putSupervisorCharge(selectedSupervisor, selectedCompanions));
-        setSelectedCompanions([]);
-         setSelectedSupervisor([]);
-        console.log(
-          `Acompañantes ${selectedCompanions.join(
-            ", "
-          )} eliminados del supervisor ${selectedSupervisor}`
-        );
+        Swal.fire({
+          title: '¿Estás seguro que quieres desasignar a estos acompañantes del supervisor?',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          cancelButtonText: 'Cancelar',
+          confirmButtonText: 'Confirmar'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            dispatch(putSupervisorCharge(selectedSupervisor, selectedCompanions));
+            setSelectedCompanions([]);
+            setSelectedSupervisor([]);
+           
+          }
+        });
       }
     } else {
       toast.error("Selecciona un supervisor", toastError);
@@ -126,13 +124,13 @@ const AssignSupervisor = ({setActiveTab}) => {
         </Typography>
         <Grid container justifyContent="center">
           <Grid item justifyContent="center" sx={{ width: "40vw" }}>
-            <Typography variant="p" sx={{fontFamily:'poppins', color: 'gray'}}>
-            Nota: Al seleccionar un Supervisor, por defecto muestra los acompañantes que tiene a su cargo. 
+            <Typography variant="p" sx={{ fontFamily: 'poppins', color: 'gray' }}>
+              Nota: Al seleccionar un Supervisor, por defecto muestra los acompañantes que tiene a su cargo.
             </Typography>
-          
-            <FormControl sx={{marginTop: '15px'}} fullWidth>
+
+            <FormControl sx={{ marginTop: '15px' }} fullWidth>
               <InputLabel >Supervisor</InputLabel>
-              <Select 
+              <Select
                 value={selectedSupervisor}
                 onChange={(e) => {
                   const selectedSupervisorId = e.target.value;
@@ -140,7 +138,6 @@ const AssignSupervisor = ({setActiveTab}) => {
                   setSelectAll(false);
                   setRestCompanions(false);
                   
-                   console.log(selectedSupervisor);              
                   // Obtén los companions del supervisor seleccionado
                   const supervisor = allSupervisors.find(
                     (supervisor) => supervisor.id === selectedSupervisorId
@@ -149,8 +146,6 @@ const AssignSupervisor = ({setActiveTab}) => {
                     const supervisorCompanions = supervisor.Companions.map(
                       (companion) => companion.id
                     );
-                 //   dispatch(getAllSupervisors());
-                 //   dispatch(getAllCompanions());
                     setSelectedCompanions(supervisorCompanions);
                   } else {
                     setSelectedCompanions([]);
@@ -159,8 +154,8 @@ const AssignSupervisor = ({setActiveTab}) => {
                 label="Supervisor"
               >
                 {/* ...opciones de supervisores */}
-        
-                <MenuItem value={[]}>
+
+                <MenuItem value={''}>
                   <em>Selecciona un supervisor</em>
                 </MenuItem>
                 {allSupervisors.map((supervisor) => {
@@ -185,72 +180,73 @@ const AssignSupervisor = ({setActiveTab}) => {
             <FormControl fullWidth>
               <InputLabel>Acompañantes</InputLabel>
               <Select
-    multiple
-    value={
-      selectAll
-        ? allCompanions.map((companion) => companion.id)
-        : selectedCompanions
-    }
-    onChange={handleSelectCompanion}
-    label="Acompañante"
-  >
-    {allCompanions.map((companion) => {
-      if (companion.name && companion.isActive) {
-        const isSelected = selectedCompanions.includes(companion.id);
-        return (
-          <MenuItem
-            key={companion.id}
-            value={companion.id}
-            style={isSelected ? { fontWeight: "bold" } : {}}
-          >
-            {companion.name} {companion.lastName}
-          </MenuItem>
-        );
-      } else {
-        return null;
-      }
-    })}
-  </Select>
+                multiple
+                value={
+                  selectAll
+                    ? allCompanions.map((companion) => companion.id)
+                    : selectedCompanions
+                }
+                onChange={handleSelectCompanion}
+                label="Acompañante"
+              >
+                 <MenuItem value={''}>
+                  <em>Selecciona acompañantes</em>
+                </MenuItem>
+                {allCompanions.map((companion) => {
+                  if (companion.name && companion.isActive) {
+                    const isSelected = selectedCompanions.includes(companion.id);
+                    return (
+                      <MenuItem
+                        key={companion.id}
+                        value={companion.id}
+                        style={isSelected ? { fontWeight: "bold" } : {}}
+                      >
+                        {companion.name} {companion.lastName}
+                      </MenuItem>
+                    );
+                  } else {
+                    return null;
+                  }
+                })}
+              </Select>
             </FormControl>
           </Grid>
         </Grid>
       </Box>
       <Grid container justifyContent="center">
         <Grid item justifyContent="center" sx={{ width: "40vw" }}>
-        <Button
-  onClick={handleSelectAll}
-  variant="outlined"
-  sx={{
-    marginTop: '5px',
-    marginRight: 1,
-    backgroundColor: selectAll ? "#00C8B2" : "transparent",
-    color: selectAll ? "white" : undefined,
-    "&:hover": {
-      backgroundColor: selectAll ? "#00C8B2" : "transparent",
-    },
-  }}
->
-  Todos los acompañantes
-</Button>
+          <Button
+            onClick={handleSelectAll}
+            variant="outlined"
+            sx={{
+              marginTop: '5px',
+              marginRight: 1,
+              backgroundColor: selectAll ? "#00C8B2" : "transparent",
+              color: selectAll ? "white" : undefined,
+              "&:hover": {
+                backgroundColor: selectAll ? "#00C8B2" : "transparent",
+              },
+            }}
+          >
+            Todos los acompañantes
+          </Button>
+          <Button
+            onClick={handleRestCompanions}
+            variant="outlined"
+            sx={{
+              marginTop: '5px',
+              marginRight: 1,
+              backgroundColor: restCompanions ? "#00C8B2" : "transparent",
+              color: restCompanions ? "white" : undefined,
+              "&:hover": {
+                backgroundColor: restCompanions ? "#00C8B2" : "transparent",
+              },
+            }}
+          >
+            Acompañantes sin referente
+          </Button>
 
-
-<Button
-  onClick={handleRestCompanions}
-  variant="outlined"
-  sx={{
-    marginTop: '5px',
-    marginRight: 1,
-    backgroundColor: restCompanions ? "#00C8B2" : "transparent",
-    color: restCompanions ? "white" : undefined,
-    "&:hover": {
-      backgroundColor: restCompanions ? "#00C8B2" : "transparent",
-    },
-  }}
->
-  Acompañantes sin referente
-</Button>
-
-<br></br><br></br>
+          <br></br><br></br>
           <Button
             onClick={assignCompanions}
             variant="contained"

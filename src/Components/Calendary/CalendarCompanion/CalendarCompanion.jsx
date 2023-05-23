@@ -4,6 +4,7 @@ import TimezoneMiddleware from "./TimezoneMiddleware";
 import { useEffect, useState } from "react";
 import CalendarCompanionSAPopOut from "./CalendarCompanionSAPopOut";
 import CalendarCompanionPopOut from "./CalendarCompanionPopOut";
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { useNavigate } from "react-router-dom";
 import {
   Typography,
@@ -18,9 +19,12 @@ import {
   TableCell,
   TableBody,
   Paper,
+  IconButton,
+  Tooltip
 } from "@mui/material";
 import "./CalendarCompanion.css";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { deleteCompanionShift } from "../../../Redux/Actions/postPutActions";
 import {
   toastSuccess,
@@ -32,8 +36,11 @@ import Swal from "sweetalert2";
 import Loader from "../../Loader/Loader";
 
 const CalendarCompanion = () => {
+  let companionCount;
+  let maxCompanions;
   const [togglePopOut, setTogglePopOut] = useState(false);
   const [shift, setShift] = useState({});
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading } = useSelector((state) => state.auth);
@@ -116,21 +123,13 @@ const CalendarCompanion = () => {
     );
 
     if (user.rol === "Companion1" && user.CompanionShifts?.length > 0) {
-      return; // Si Companion1 ya tiene un turno reservado, no hacer nada
+      return toast.error("Ya cuentas con un turno reservado", toastWarning); // Si Companion1 ya tiene un turno reservado, no hacer nada
     }
-    if (
-      (user.rol === "SuperAdmin" || user.rol === "Supervisor") &&
-      found &&
-      !found.shiftCompanions?.length
-    ) {
-      return toast.error(
-        "Los acompanantes reservan sus propios turnos",
-        toastWarning
-      );
-    } else {
-      setTogglePopOut(!togglePopOut);
-      setShift(found);
-    }
+    if (user.rol !== "Companion1" || (user.rol === "Companion1" && user.CompanionShifts?.length === 0)) {
+
+        setTogglePopOut(!togglePopOut);
+        setShift(found);
+      }     
   };
 
   const handleDeleteShift = (idShift) => {
@@ -158,7 +157,7 @@ const CalendarCompanion = () => {
     dispatch(getAllCompanionsPerShift());
   }, [togglePopOut, user]);
 
-  // Render de cada celda:
+    
   return !loading ? (
     <Container>
       <Grid
@@ -192,8 +191,7 @@ const CalendarCompanion = () => {
         variant="h7"
         sx={{ display: "flex", padding: "10px", fontFamily: "poppins" }}
       >
-        Horarios dispuestos en la zona horaria: {user.CityTimeZone.offSet}{" "}
-        {user.CityTimeZone.zoneName}
+        Horarios dispuestos en la zona horaria: {user.CityTimeZone.offSet} {user.CityTimeZone.zoneName.replace("_", " ")}
       </Typography>
       <TableContainer component={Paper} className="calendar-container">
         <Table className="calendar-table">
@@ -213,12 +211,12 @@ const CalendarCompanion = () => {
                   const found = shifts.find(
                     (shift) => shift.day === index && shift.time === hour
                   );
-                  const companionCount = found ? found.companionCount : 0;
-                  const maxCompanions = found ? found.maxCompanions : 0;
+                   companionCount = found ? found.companionCount : 0;
+                   maxCompanions = found ? found.maxCompanions : 0;
                   let countText = companionCount;
                   if (companionCount && maxCompanions) {
                     countText =
-                      "Disponibles:  " + (maxCompanions - companionCount);
+                      "Disponibles:  "  + (maxCompanions - companionCount) + ' de ' + maxCompanions;
                   }
 
                   // Determinar color de disponibilidad y estilos en línea
@@ -227,19 +225,22 @@ const CalendarCompanion = () => {
                     const availabilityRatio = companionCount / maxCompanions;
 
                     if (availabilityRatio <= 0.3) {
-                      cellStyle.backgroundColor = "lightgreen"; // Alta disponibilidad
+                      cellStyle.backgroundColor = "#269B40"; // Alta disponibilidad
                     } else if (availabilityRatio <= 0.5) {
                       cellStyle.backgroundColor = "#F0F34E"; // Amarillo Disponibilidad moderada
                     } else if (1 > availabilityRatio > 0.5) {
-                      cellStyle.backgroundColor = "lightyellow"; //Poca disponibilidad
+                      cellStyle.backgroundColor = "#F3F496"; //Poca disponibilidad
                     } else if (availabilityRatio == 1) {
                       cellStyle.backgroundColor = "lightgrey"; // Sin disponibilidad
+                    }else{
+                      cellStyle.backgroundColor = "lightgrey";
                     }
                   }
 
                   return user.rol === "Companion1" ||
                     user.rol === "Companion2" ? (
                     <TableCell
+                    sx={{"&:hover": {cursor: "cell"}}}
                       key={day}
                       onClick={() =>
                         found &&
@@ -258,7 +259,7 @@ const CalendarCompanion = () => {
                           found.shiftCompanions.some(
                             (companion) => companion.id === user.id
                           )
-                            ? "#fff" // Letra blanca para 'Mi turno'
+                            ? "black" // Letra blanca para 'Mi turno'
                             : cellStyle.color, // Mantener el fondo según la disponibilidad
                         backgroundColor:
                           (user.rol === "Companion1" ||
@@ -267,7 +268,7 @@ const CalendarCompanion = () => {
                           found.shiftCompanions.some(
                             (companion) => companion.id === user.id
                           )
-                            ? "#1976d2" // Fondo blanco para 'Mi turno'
+                            ? "#A2D1AD" // Fondo blanco para 'Mi turno'
                             : cellStyle.backgroundColor, // Mantener el fondo según la disponibilidad
                       }}
                     >
@@ -277,15 +278,19 @@ const CalendarCompanion = () => {
                       found.shiftCompanions.some(
                         (companion) => companion.id === user.id
                       ) ? (
-                        <>
-                          {" "}
-                          Mi turno{" "}
+                        <Box sx={{display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-end", "&:hover": {cursor: "default"}}}>
+                          Mi turno
                           {user.rol === "Companion2" && (
-                            <button className="delete-button">X</button>
-                          )}{" "}
-                        </>
+                           <IconButton sx={{"&:hover": {cursor: "pointer"}}} size="medium" aria-label="Eliminar Turno">
+                              <DeleteForeverIcon sx={{color: "#616161"}}/>
+                           </IconButton>
+                          )}
+                        </Box>
                       ) : (
-                        countText || "Disponibles:  " + maxCompanions
+                        <Box>
+                          <Typography>Disponibles: </Typography>
+                          <Typography> {(maxCompanions - companionCount) + ' de ' + maxCompanions}</Typography>
+                         </Box> 
                       )}
                     </TableCell>
                   ) : (
@@ -296,7 +301,15 @@ const CalendarCompanion = () => {
                         onClick={() => handleClickCell(hour, day)}
                         style={cellStyle}
                       >
-                        {countText || "Disponibles:  " + maxCompanions}
+                       {maxCompanions >= companionCount ?
+                       <Box>
+                          <Typography>{maxCompanions > companionCount ? "Disponibles: " : "No disponible"}</Typography>
+                          <Typography sx={{display: maxCompanions === companionCount ? "none" : null}}> {(maxCompanions - companionCount) + ' de ' + maxCompanions}</Typography>
+                         </Box>
+                       :(
+                        <Tooltip title="Exceso de personal" placement="top"> 
+                       <Typography sx={{color: "#C93838", "&:hover": {cursor: "pointer"}}}>{<ErrorOutlineIcon/>}</Typography>
+                       </Tooltip>) }
                       </TableCell>
                     )
                   );

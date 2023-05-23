@@ -16,9 +16,13 @@ import {
   Paper,
   Button,
   Grid,
-  Typography
+  Typography,
+  Box,
+  Tooltip,
 } from "@mui/material";
+import "./CalendarSuperadmin.css"
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { toast } from "sonner";
 import { toastWarning } from "../../../Redux/Actions/alertStyle";
 import TimezoneMiddleware from "./TimezoneMiddleware";
@@ -109,21 +113,12 @@ const CalendarSupervisor = () => {
     if (found.supervisorCount > 0 && user.rol === 'Supervisor') { setTogglePopOut(!togglePopOut) }
     if (found.supervisorCount === 0 && user.rol === 'Supervisor') toast.error('Para reservar un turno, comunícate con el Administrador', toastWarning)
     if (user.rol === 'SuperAdmin') { setTogglePopOut(!togglePopOut) };
-    //Actualizo estado local con 1 shift de onClick:
     setShift(found);
   };
-
-  // const handleDeleteSupervisor = (supervisorId, shiftId) => {
-  //   dispatch(deleteSupervisorShift(supervisorId, shiftId));
-  //   // Cerrar el pop-out después de eliminar el supervisor
-  //   setTogglePopOut(false);
-  // };
-
   useEffect(() => {
     dispatch(getAllSupervisorsPerShift());
   }, [togglePopOut]);
 
-  // Render de cada celda:
   return (
     <Container>
       <Grid
@@ -157,11 +152,10 @@ const CalendarSupervisor = () => {
         variant="h7"
         sx={{ display: "flex", padding: "10px", fontFamily: "poppins" }}
       >
-        Horarios dispuestos en la zona horaria: {user.CityTimeZone.offSet}{" "}
-        {user.CityTimeZone.zoneName}
+        Horarios dispuestos en la zona horaria: {user.CityTimeZone.offSet} {user.CityTimeZone.zoneName.replace("_", " ")}
       </Typography>
       <TableContainer component={Paper}>
-        <Table border={1} bordercolor={"lightGray"}>
+        <Table className="calendar-table">
           <TableHead>
             <TableRow>
               <TableCell></TableCell>
@@ -173,7 +167,7 @@ const CalendarSupervisor = () => {
           <TableBody>
             {hours.map((hour) => (
               <TableRow key={hour}>
-                <TableCell >{hour}</TableCell>
+                <TableCell className="hour">{hour}</TableCell>
                 {days.map((day, index) => {
                   const found = shifts.find(
                     (shift) => shift.day === index && shift.time === hour
@@ -182,7 +176,7 @@ const CalendarSupervisor = () => {
                   const maxSupervisors = found ? found.maxSupervisors : 0;
                   let countText = supervisorCount;
                   if (supervisorCount && maxSupervisors) {
-                    countText = 'Disponibles:  ' + (maxSupervisors - supervisorCount);
+                    countText =  "Disponibles:  " + (maxSupervisors - supervisorCount) + ' de ' + maxSupervisors;                   
                   }
                   // Determinar color de disponibilidad y estilos en línea
                   let cellStyle = {};
@@ -190,13 +184,15 @@ const CalendarSupervisor = () => {
                     const availabilityRatio = supervisorCount / maxSupervisors;
 
                     if (availabilityRatio <= 0.3) {
-                      cellStyle.backgroundColor = 'lightgreen'; // Alta disponibilidad
-                    }
-                    else if (availabilityRatio <= 0.5) {
-                      cellStyle.backgroundColor = "#F0F34E"; // Disponibilidad moderada
+                      cellStyle.backgroundColor = "#269B40"; // Alta disponibilidad
+                    } else if (availabilityRatio <= 0.5) {
+                      cellStyle.backgroundColor = "#F0F34E"; // Amarillo Disponibilidad moderada
+                    } else if (1 > availabilityRatio > 0.5) {
+                      cellStyle.backgroundColor = "#F3F496"; //Poca disponibilidad
                     } else if (availabilityRatio == 1) {
-                      cellStyle.backgroundColor = "lightgrey";
-                      // Sin disponibilidad
+                      cellStyle.backgroundColor = "lightgrey"; // Sin disponibilidad
+                    }else {
+                      cellStyle.backgroundColor = "lightgrey"; // Sin disponibilidad
                     }
                   }
 
@@ -208,7 +204,15 @@ const CalendarSupervisor = () => {
                       onClick={() => handleClickCell(hour, day)}
                       style={cellStyle}
                     >
-                      {countText || 'Disponibles: ' + maxSupervisors}
+                        {maxSupervisors >= supervisorCount ?
+                       <Box>
+                          <Typography>{maxSupervisors > supervisorCount ? "Disponibles: " : "No disponible"}</Typography>
+                          <Typography sx={{display: maxSupervisors === supervisorCount ? "none" : null}}> {(maxSupervisors - supervisorCount) + ' de ' + maxSupervisors}</Typography>
+                         </Box>
+                       :(
+                        <Tooltip title="Exceso de personal" placement="top"> 
+                       <Typography sx={{color: "#C93838", "&:hover": {cursor: "pointer"}}}>{<ErrorOutlineIcon/>}</Typography>
+                       </Tooltip>) }
                     </TableCell>
                   );
                 })}
@@ -221,58 +225,6 @@ const CalendarSupervisor = () => {
         shift={shift}
         setTrigger={setTogglePopOut}
         trigger={togglePopOut} />}
-      {/* <CalendarSuperAdminPopOut
-        shift={shift}
-        setTrigger={setTogglePopOut}
-        trigger={togglePopOut}
-      >
-        {shift.shiftSupervisors?.length ? (
-          <div>
-            <h3>
-              <b>Asignados en este turno:</b>
-            </h3>
-            {shift.shiftSupervisors?.map((supervisor) => (
-              <div style={{ display: "flex" }} key={supervisor.id}>
-                <p onClick={() => navigate(`/profile/${supervisor.id}/view`)}>
-                  {supervisor.name}
-                </p>
-
-                { user.rol === "SuperAdmin" && 
-                 <Button  style={{
-           
-                  fontSize: "12px",
-                  padding: "2px 5px",
-                  border: "none",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                  margin: "10px"
-                }}
-                        variant="contained"
-                        onClick={() =>
-                          handleDeleteSupervisor(supervisor.id, shift.shiftId)
-                        }
-                      >
-                        X
-                      </Button>
-                }
-               
-              </div>
-            ))}
-          </div>
-        ) : (
-          ""
-        )}
-     {user.rol === "SuperAdmin" && (
-  <div>
-    <h3>Nuevo turno a asignar:</h3>
-    <label>{shift.day}</label>
-    <p>{shift.time}</p>
-  </div>
-)}
-
-       
-      </CalendarSuperAdminPopOut> */}
-
     </Container>
   );
 };
